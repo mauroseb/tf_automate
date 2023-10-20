@@ -1,0 +1,39 @@
+#!/bin/bash
+
+
+
+dnf -e 0 -q -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+dnf -e 0 -q -y install git iperf3 podman wget jq bind-utils make zsh net-tools unzip
+dnf -e 0 -q -y install https://packages.chef.io/files/stable/chef-workstation/21.10.640/el/8/chef-workstation-21.10.640-1.el8.x86_64.rpm
+
+[[ ! -x /usr/local/bin/yq ]] && wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64.tar.gz -O - | tar xvzf - -C /usr/local/bin --strip-components=0 ./yq_linux_amd64 && mv /usr/local/bin/yq_linux_amd64 /usr/local/bin/yq
+
+echo [+] Create Knife config
+mkdir -p ~${username}/.chef
+cat <<__EOF__ > ~${username}/.chef/credentials
+[default]
+client_name = "orgadmin"
+client_key="~/.chef/testorg-validator.pem"
+chef_server_url = 'https://automate.${env_name}.local/organizations/testorg'
+__EOF__
+
+echo [+] Create SSH config
+mkdir -p ~${username}/.ssh
+cat <<__EOF__ > ~${username}/.ssh/config
+Host *.a2-01.local 10.1.*
+    IdentityFile ~/.ssh/id_rsa_knife
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    User centos
+__EOF__
+
+chown -R ${username}:${username} ~${username}/{.chef,.ssh}
+
+sudo -H -u ${username} bash <<_ASUSER_
+git clone --depth 1 https://github.com/mauroseb/dotfiles.git /home/${username}/dotfiles
+cd /home/${username}/dotfiles ; make all; cd
+git clone --depth 1 https://github.com/asdf-vm/asdf.git /home/${username}/.asdf
+exit
+_ASUSER_
+
+usermod -s `which zsh` ${username}

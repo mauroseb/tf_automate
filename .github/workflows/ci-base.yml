@@ -1,0 +1,42 @@
+---
+name: tf_automate CI 🚀
+on: [push, pull_request]
+
+jobs:
+  tf_automate_pipeline:
+    runs-on: ubuntu-latest
+    steps:
+    - name: print event details
+      run: echo "New event created by user ${{ github.event.pull_request.user.login }}."
+
+    - name: check out code
+      uses: actions/checkout@v3
+
+    - name: lint all
+      uses: actionshub/terraform-lint@main
+      
+#    - name: Run tfsec scan
+#      uses: tfsec/tfsec-sarif-action@v0.1.0
+#      with:
+#        sarif_file: tfsec.sarif         
+
+#    - name: Upload SARIF file
+#      uses: github/codeql-action/upload-sarif@v2
+#      with:
+#        sarif_file: tfsec.sarif
+        
+    - name: print job status
+      run: 'echo "Job Status: ${{ job.status }}."'
+
+    - name: send telegram alert
+      if: always()
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.TELEGRAM_TO }}
+        token: ${{ secrets.TELEGRAM_TOKEN }}
+        message: |
+          *** ${{ github.actor }} created commit: ***
+          Commit message: ${{ github.event.commits[0].message }}
+          Repository: ${{ github.repository }}
+          Job Status: ${{ job.status }}
+          See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}

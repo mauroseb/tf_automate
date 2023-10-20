@@ -1,0 +1,37 @@
+#!/bin/bash
+
+echo [+] Installing Prerequisites
+dnf -e 0 -q -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+dnf -e 0 -q -y install git iperf3 podman wget jq bind-utils make zsh net-tools
+[[ ! -x /usr/local/bin/yq ]] && wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64.tar.gz -O - | tar xvzf - -C /usr/local/bin --strip-components=0 ./yq_linux_amd64 && mv /usr/local/bin/yq_linux_amd64 /usr/local/bin/yq
+
+echo [+] Bootstrapping chef client
+mkdir -p /etc/chef /var/lib/chef /var/log/chef
+cd /etc/chef
+curl -L https://omnitruck.chef.io/install.sh | bash || echo 'ERROR: Could not install chef'
+cat << __EOF__ > /etc/chef/first-boot.json
+{
+   "run_list" :[
+     "role[base]"
+   ]
+}
+__EOF__
+
+NODE_NAME=centos-`echo $RANDOM | sha256sum | head -c 8`
+cat << EOF > /etc/chef/client.rb
+log_location            STDOUT
+chef_server_url         'https://automate.${env_name}.local/organizations/testorg'
+validation_client_name  'testorg-validator'
+validation_key          '/etc/chef/testorg-validator.pem'
+node_name               "$NODE_NAME"
+EOF
+chef-client -j /etc/chef/first-boot.json
+
+sudo -H -u ${username} bash <<_ASUSER_
+git clone --depth 1 https://github.com/mauroseb/dotfiles.git /home/${username}/dotfiles
+cd /home/${username}/dotfiles ; make all; cd
+git clone --depth 1 https://github.com/asdf-vm/asdf.git /home/${username}/.asdf
+exit
+_ASUSER_
+
+usermod -s `which zsh` ${username}

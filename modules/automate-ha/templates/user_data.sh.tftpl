@@ -1,0 +1,61 @@
+#!/bin/bash
+
+echo [+] Installing Prerequisites
+cd /root
+dnf -e 0 -q -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+dnf -e 0 -q -y install git iperf3 podman wget jq bind-utils make zsh net-tools unzip
+[[ ! -x /usr/local/bin/yq ]] && wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64.tar.gz -O - | tar xvzf - -C /usr/local/bin --strip-components=0 ./yq_linux_amd64 && mv /usr/local/bin/yq_linux_amd64 /usr/local/bin/yq
+#curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip awscliv2.zip && ./aws/install
+
+echo [+] Setting sysctl requiremetns
+echo vm.max_map_count=262144 >> /etc/sysctl.conf
+echo vm.dirty_expire_centisecs=20000 >> /etc/sysctl.conf
+echo fs.file-max=65534 >> /etc/sysctl.conf
+sysctl -p
+
+echo [+] Downloading Automate
+curl -s https://packages.chef.io/files/current/automate/${version}/chef-automate_linux_amd64.zip | gunzip - > chef-automate && chmod +x chef-automate
+curl -s https://packages.chef.io/airgap_bundle/current/automate/latest.aib -o latest.aib
+
+#echo [+] Add FQDN to /etc/hosts
+#echo "10.1.1.100 ip-10-1-1-100.eu-central-1.compute.internal" >> /etc/hosts
+
+echo [+] Disable SELinux
+sed -i 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
+setenforce 0
+
+#echo [+] Deploying Automate Airgapped
+#./chef-automate init-config --upgrade-strategy none --fqdn "automate.${env_name}.local"
+#./chef-automate deploy config.toml --airgap-bundle latest.aib --product automate --product infra-server --accept-terms-and-mlsa
+
+echo [+] Post Deployment Config
+cat <<__EOF__ > /tmp/license.jwt
+${a2ha-license}
+__EOF__
+#./chef-automate license apply /tmp/license.jwt
+#cp automate-credentials.toml ~centos/
+#chef-server-ctl user-create orgadmin Org Admin orgadmin@test.org 'verysecret' --filename ~${username}/orgadmin.pem
+#chef-server-ctl org-create testorg 'Test Organization' --association_user orgadmin --filename ~${username}/testorg-validator.pem
+#./chef-automate iam token create admin --admin  > ~${username}/admin-token.txt
+#./chef-automate iam token create einfra > ~${username}/einfra-token.txt
+#chown ${username}:${username} -R ~${username}/
+echo [+] Setip root user
+git clone --depth 1 https://github.com/mauroseb/dotfiles.git dotfiles
+cd dotfiles ; make all; cd
+usermod -s `which zsh` root
+
+echo [+] Setup ${username} user
+sudo -H -u ${username} bash <<_ASUSER_
+git clone --depth 1 https://github.com/mauroseb/dotfiles.git /home/${username}/dotfiles
+cd /home/${username}/dotfiles ; make all; cd
+git clone --depth 1 https://github.com/asdf-vm/asdf.git /home/${username}/.asdf
+exit
+_ASUSER_
+usermod -s `which zsh` ${username}
+
+echo [+] Flag userdata_complete=true
+TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+INSTANCE_ID=`curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-id`
+echo "User data finished for $INSTANCE_ID" > ~${username}/userdata-complete.txt
+echo "$(uptime -p)" >> ~${username}/userdata-complete.txt
+#/usr/local/bin/aws ec2 create-tags --resources $INSTANCE_ID --tags 'Key=userdata-complete,Value=true'

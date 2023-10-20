@@ -1,0 +1,52 @@
+#!/bin/bash
+
+echo [+] Installing Prerequisites
+cat <<__EOF__ > /etc/yum.repos.d/chef.repo
+[chef-stable]
+name=chef-stable
+baseurl=https://packages.chef.io/repos/yum/stable/el/8/x86_64/
+gpgkey=https://packages.chef.io/chef.asc
+gpgcheck=1
+enabled=1
+__EOF__
+
+dnf -e 0 -q -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+dnf -e 0 -q -y install git iperf3 podman wget jq bind-utils make zsh net-tools
+[[ ! -x /usr/local/bin/yq ]] && wget -q https://github.com/mikefarah/yq/releases/download/v4.27.5/yq_linux_amd64.tar.gz -O - | tar xvzf - -C /usr/local/bin --strip-components=0 ./yq_linux_amd64 && mv /usr/local/bin/yq_linux_amd64 /usr/local/bin/yq
+
+echo [+] Installing Chef Infra
+dnf -e 0 -q -y install chef-server-core chef-manage
+# alternative: dnf -e 0 -q -y install https://packages.chef.io/files/stable/chef-server/15.7.0/el/8/chef-server-core-15.7.0-1.el8.x86_64.rpm
+
+echo [+] Disable SELinux
+sed -i 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
+setenforce 0
+
+echo [+] Setup Chef Infra
+chef-server-ctl reconfigure --accept-license
+chef-manage-ctl reconfigure --accept-license
+chef-server-ctl user-create admin infra-admin none admin@infratest.org 'verysecret' --filename ~${username}/infra-admin.key
+chef-server-ctl org-create infra-testorg 'Infra Test Org' --association_user admin --filename ~${username}/infra-testorg-validator.pem
+chown ${username}:${username} -R ~${username}/
+
+echo [+] Setip root user
+git clone --depth 1 https://github.com/mauroseb/dotfiles.git dotfiles
+cd dotfiles ; make all; cd
+usermod -s `which zsh` root
+
+echo [+] Setup ${username} user
+sudo -H -u ${username} bash <<_ASUSER_
+git clone --depth 1 https://github.com/mauroseb/dotfiles.git /home/${username}/dotfiles
+cd /home/${username}/dotfiles ; make all; cd
+git clone --depth 1 https://github.com/asdf-vm/asdf.git /home/${username}/.asdf
+exit
+_ASUSER_
+
+usermod -s `which zsh` ${username}
+
+echo [+] Flag userdata_complete=true
+TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+INSTANCE_ID=`curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-id`
+echo "User data finished for $INSTANCE_ID" > ~${username}/userdata-complete.txt
+echo "$(uptime -p)" >> ~${username}/userdata-complete.txt
+#/usr/local/bin/aws ec2 create-tags --resources $INSTANCE_ID --tags 'Key=userdata-complete,Value=true'
