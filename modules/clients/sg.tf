@@ -15,9 +15,6 @@ resource "aws_security_group" "linux-client-sg" {
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
-    #cidr_blocks = ["0.0.0.0/0"]
-    #ipv6_cidr_blocks = [data.aws_vpc.a2-vpc.ipv6_cidr_block]
-    #ipv6_cidr_blocks = ["::/0"]
   }
   egress {
     from_port        = 0
@@ -46,9 +43,6 @@ resource "aws_security_group" "win-client-sg" {
     to_port     = 3389
     protocol    = "tcp"
     cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
-    #cidr_blocks = ["0.0.0.0/0"]
-    #ipv6_cidr_blocks = [data.aws_vpc.a2-vpc.ipv6_cidr_block]
-    #ipv6_cidr_blocks = ["::/0"]
   }
   ingress {
     description = "WinRM HTTP"
@@ -56,9 +50,6 @@ resource "aws_security_group" "win-client-sg" {
     to_port     = 5985
     protocol    = "tcp"
     cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
-    #cidr_blocks = ["0.0.0.0/0"]
-    #ipv6_cidr_blocks = [data.aws_vpc.a2-vpc.ipv6_cidr_block]
-    #ipv6_cidr_blocks = ["::/0"]
   }
   ingress {
     description = "WinRM HTTPs"
@@ -66,9 +57,6 @@ resource "aws_security_group" "win-client-sg" {
     to_port     = 5986
     protocol    = "tcp"
     cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
-    #cidr_blocks = ["0.0.0.0/0"]
-    #ipv6_cidr_blocks = [data.aws_vpc.a2-vpc.ipv6_cidr_block]
-    #ipv6_cidr_blocks = ["::/0"]
   }
   egress {
     from_port        = 0
