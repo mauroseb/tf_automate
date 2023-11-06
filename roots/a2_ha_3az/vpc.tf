@@ -46,7 +46,7 @@ resource "aws_subnet" "testenv-subnet-pub" {
 
 resource "aws_internet_gateway" "testenv-igw" {
   vpc_id     = aws_vpc.testenv-vpc.id
-  depends_on = [aws_vpc.testenv-vpc] 
+  depends_on = [aws_vpc.testenv-vpc]
   tags = {
     Owner       = var.owner_tag
     Name        = "${var.env_name}-igw"
@@ -57,9 +57,9 @@ resource "aws_internet_gateway" "testenv-igw" {
 }
 
 resource "aws_route_table" "testenv-public-rt" {
-  for_each     = toset(data.aws_availability_zones.azs.names)
-  vpc_id       = aws_vpc.testenv-vpc.id
-  depends_on   = [aws_vpc.testenv-vpc]
+  for_each   = toset(data.aws_availability_zones.azs.names)
+  vpc_id     = aws_vpc.testenv-vpc.id
+  depends_on = [aws_vpc.testenv-vpc]
   route {
     //associated subnet can reach everywhere
     cidr_block = "0.0.0.0/0"
@@ -83,9 +83,9 @@ resource "aws_route_table_association" "testenv-public-rta" {
 
 
 resource "aws_eip" "testenv-eip" {
-  for_each     = toset(data.aws_availability_zones.azs.names)
-  vpc          = true
-  depends_on   = [aws_internet_gateway.testenv-igw]
+  for_each   = toset(data.aws_availability_zones.azs.names)
+  vpc        = true
+  depends_on = [aws_internet_gateway.testenv-igw]
   tags = {
     Owner       = var.owner_tag
     Name        = "${var.env_name}-natgw-eip-${each.value}"
@@ -112,8 +112,8 @@ resource "aws_nat_gateway" "testenv-natgw" {
 }
 
 resource "aws_route_table" "testenv-private-rt" {
-  for_each  = toset(data.aws_availability_zones.azs.names)
-  vpc_id = aws_vpc.testenv-vpc.id
+  for_each = toset(data.aws_availability_zones.azs.names)
+  vpc_id   = aws_vpc.testenv-vpc.id
   route {
     //associated subnet can reach everywhere
     cidr_block = "0.0.0.0/0"

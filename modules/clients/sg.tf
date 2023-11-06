@@ -14,7 +14,7 @@ resource "aws_security_group" "linux-client-sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
+    cidr_blocks = [data.aws_vpc.client-vpc.cidr_block]
   }
   egress {
     from_port        = 0
@@ -42,21 +42,21 @@ resource "aws_security_group" "win-client-sg" {
     from_port   = 3389
     to_port     = 3389
     protocol    = "tcp"
-    cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
+    cidr_blocks = [data.aws_vpc.client-vpc.cidr_block]
   }
   ingress {
     description = "WinRM HTTP"
     from_port   = 5985
     to_port     = 5985
     protocol    = "tcp"
-    cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
+    cidr_blocks = [data.aws_vpc.client-vpc.cidr_block]
   }
   ingress {
     description = "WinRM HTTPs"
     from_port   = 5986
     to_port     = 5986
     protocol    = "tcp"
-    cidr_blocks      = [data.aws_vpc.client-vpc.cidr_block]
+    cidr_blocks = [data.aws_vpc.client-vpc.cidr_block]
   }
   egress {
     from_port        = 0

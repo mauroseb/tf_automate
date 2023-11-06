@@ -1,6 +1,6 @@
 resource "aws_vpc_endpoint" "s3" {
-    vpc_id = aws_vpc.testenv-vpc.id
-    service_name = "com.amazonaws.${var.aws_region}.s3"
+  vpc_id       = aws_vpc.testenv-vpc.id
+  service_name = "com.amazonaws.${var.aws_region}.s3"
 }
 
 resource "aws_vpc_endpoint_route_table_association" "vpce-rta" {
