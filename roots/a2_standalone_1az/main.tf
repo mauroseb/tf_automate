@@ -96,10 +96,10 @@ module "clients" {
 }
 
 locals {
-  centos-ips = var.centos-client-nr != 0 ? join(" ", module.clients.centos-ips) : ""
-  win-ips    = var.win-client-nr != 0 ? join(" ", module.clients.win-ips) : ""
-  ubuntu-ips = var.ubuntu-client-nr != 0 ? join(" ", module.clients.ubuntu-ips) : ""
-  rhel-ips   = var.rhel-client-nr != 0 ? join(" ", module.clients.rhel-ips) : ""
+  centos-ips = var.centos-client-nr > 0 ? join(" ", module.clients.centos-ips) : ""
+  win-ips    = var.win-client-nr > 0 ? join(" ", module.clients.win-ips) : ""
+  ubuntu-ips = var.ubuntu-client-nr > 0 ? join(" ", module.clients.ubuntu-ips) : ""
+  rhel-ips   = var.rhel-client-nr > 0 ? join(" ", module.clients.rhel-ips) : ""
 }
 
 resource "null_resource" "bastion_postup" {
