@@ -2,5 +2,5 @@
 ![GitHub](https://img.shields.io/github/license/mauroseb/tf_automate)
 # Terraform AWS Automate
 
-Generic AWS test deployment for Automate and Automate-HA written in Terraform (HCL).
+Generic AWS test deployment for Automate and Automate-HA written in HCL (terraform).
 
