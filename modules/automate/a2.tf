@@ -20,14 +20,4 @@ resource "aws_instance" "automate" {
   credit_specification {
     cpu_credits = "unlimited"
   }
-  #provisioner "file" {
-  #    content     = var.a2-license
-  #    destination = "/tmp/license.jwt"
-  #    connection {
-  #        user        = "centos"
-  #        type        = "ssh"
-  #        private_key = file(var.priv_key_file)
-  #        host        = self.public_ip
-  #    }
-  #}
 }

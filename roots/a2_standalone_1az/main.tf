@@ -159,7 +159,7 @@ resource "null_resource" "bootstrap_win_clients" {
       timeout     = 300
     }
     inline = [
-      "/opt/chef-workstation/bin/knife bootstrap winrm://${module.clients.win-ips[count.index]} -N win-${count.index} -U Administrator -P '${module.clients.win-passwords[count.index]}'  --policy-group lab --policy-name secbase-win --chef-license 'accept-silent' --sudo  -y --ssh-identity-file ~/.ssh/id_rsa_knife --ssh-verify-host-key never"
+      "/opt/chef-workstation/bin/knife bootstrap winrm://${module.clients.win-ips[count.index]} -N win-${count.index} -U Administrator -P '${module.clients.win-passwords[count.index]}'  --policy-group lab --policy-name win_base --chef-license 'accept-silent' -y"
     ]
   }
 }

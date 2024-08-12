@@ -11,13 +11,12 @@ net stop winrm
 sc.exe config winrm start=auto
 net start winrm
 
-## Download the Chef Infra Client
-$clientURL = "https://packages.chef.io/files/stable/chef/12.19.36/windows/2012/chef-client-<version-here>.msi"
-$clientDestination = "C:\chef-client.msi"
-Invoke-WebRequest $clientURL -OutFile $clientDestination
-
-## Install the Chef Infra Client
-Start-Process msiexec.exe -ArgumentList @('/qn', '/lv C:\Windows\Temp\chef-log.txt', '/i C:\chef-client.msi', 'ADDLOCAL="ChefClientFeature,ChefSchTaskFeature,ChefPSModuleFeature"') -Wait
+## Old way
+#$clientURL = "https://packages.chef.io/files/stable/chef/12.19.36/windows/2012/chef-client-<version-here>.msi"
+#$clientDestination = "C:\chef-client.msi"
+#Invoke-WebRequest $clientURL -OutFile $clientDestination
+#Start-Process msiexec.exe -ArgumentList @('/qn', '/lv C:\Windows\Temp\chef-log.txt', '/i C:\chef-client.msi', 'ADDLOCAL="ChefClientFeature,ChefSchTaskFeature,ChefPSModuleFeature"') -Wait
+. { iwr -useb https://omnitruck.chef.io/install.ps1 } | iex; install 
 
 ## Create first-boot.json
 $firstboot = @{
