@@ -1,6 +1,11 @@
 ---
 name: tf_automate CI 🚀
-on: [push, pull_request]
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 jobs:
   tf_automate_pipeline:
