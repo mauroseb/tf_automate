@@ -23,8 +23,8 @@ sed -i 's/^SELINUX=.*$/SELINUX=disabled/' /etc/selinux/config
 setenforce 0
 
 echo [+] Setup Chef Infra
-chef-server-ctl reconfigure --accept-license
-chef-manage-ctl reconfigure --accept-license
+chef-server-ctl reconfigure --chef-license=accept
+chef-manage-ctl reconfigure --chef-license=accept
 chef-server-ctl user-create admin infra-admin none admin@infratest.org 'verysecret' --filename ~${username}/infra-admin.key
 chef-server-ctl org-create infra-testorg 'Infra Test Org' --association_user admin --filename ~${username}/infra-testorg-validator.pem
 chown ${username}:${username} -R ~${username}/
