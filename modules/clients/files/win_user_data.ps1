@@ -18,24 +18,23 @@ net start winrm
 #Start-Process msiexec.exe -ArgumentList @('/qn', '/lv C:\Windows\Temp\chef-log.txt', '/i C:\chef-client.msi', 'ADDLOCAL="ChefClientFeature,ChefSchTaskFeature,ChefPSModuleFeature"') -Wait
 . { iwr -useb https://omnitruck.chef.io/install.ps1 } | iex; install 
 
-## Create first-boot.json
 $firstboot = @{
-    "run_list" = @("role[base]")
+    "policy_name":"win_base","policy_group":"lab"
 }
+
 Set-Content -Path c:\chef\first-boot.json -Value ($firstboot | ConvertTo-Json -Depth 10)
  
-## Create client.rb
 $nodeName = "win-{0}" -f (-join ((65..90) + (97..122) | Get-Random -Count 8 | % {[char]$_}))
 
 $clientrb = @"
-chef_server_url        'https://automate.${env_name}/organizations/testorg'
-validation_client_name 'validator'
-validation_key         'C:\chef\validator.pem'
+chef_server_url        'https://automate.${env_name}.local/organizations/testorg'
+validation_client_name 'testorg-validator'
+validation_key         'C:\chef\testorg-validator.pem'
 node_name              '{0}'
 "@ -f $nodeName
+
 Set-Content -Path c:\chef\client.rb -Value $clientrb
 
-## Run Chef
 C:\opscode\chef\bin\chef-client.bat -j C:\chef\first-boot.json
 
 </powershell>
